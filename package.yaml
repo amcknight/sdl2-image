@@ -31,7 +31,6 @@ library:
   dependencies:
   - bytestring >= 0.10.4.0
   - template-haskell >= 2.10
-  - vector >= 0.10
   source-dirs: src
   verbatim:
     autogen-modules:

@@ -18,7 +18,7 @@ examples =
       \window path -> do
         image <- SDL.Image.load path
         screen <- SDL.getWindowSurface window
-        SDL.surfaceBlit image Nothing screen Nothing
+        _ <- SDL.surfaceBlit image Nothing screen Nothing
         SDL.updateWindowSurface window
         SDL.freeSurface image
     ),
