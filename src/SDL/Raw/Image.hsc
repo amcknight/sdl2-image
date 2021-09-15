@@ -1,9 +1,9 @@
 {-|
 
 Module      : SDL.Raw.Image
-Copyright   : (c) 2015 Siniša Biđin
+Copyright   : (c) 2015 Siniša Biđin, 2021 Daniel Firth
 License     : MIT
-Maintainer  : sinisa@bidin.eu
+Maintainer  : sinisa@bidin.eu, dan.firth@homotopic.tech
 Stability   : experimental
 
 Raw bindings to the @SDL2_image@ library. No error-handling is done here. For
@@ -13,6 +13,10 @@ documentation.
 -}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
+{-# OPTIONS_GHC -fno-warn-missing-local-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}

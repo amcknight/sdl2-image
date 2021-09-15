@@ -1,86 +1,86 @@
-{-|
-
-Module      : SDL.Image
-Copyright   : (c) 2015 Siniša Biđin
-License     : MIT
-Maintainer  : sinisa@bidin.eu
-Stability   : experimental
-
-Bindings to the @SDL2_image@ library. These should allow you to load various
-types of images as @SDL@ 'Surface's, as well as detect image formats.
-
-You can safely assume that any monadic function listed here is capable of
-throwing an 'SDLException' in case it encounters an error.
-
--}
-
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
+-- |
+--
+-- Module      : SDL.Image
+-- Copyright   : (c) 2015 Siniša Biđin, 2021 Daniel Firth
+-- License     : MIT
+-- Maintainer  : sinisa@bidin.eu, dan.firth@homotopic.tech
+-- Stability   : experimental
+--
+-- Bindings to the @SDL2_image@ library. These should allow you to load various
+-- types of images as @SDL@ 'Surface's, as well as detect image formats.
+--
+-- You can safely assume that any monadic function listed here is capable of
+-- throwing an 'SDLException' in case it encounters an error.
 module SDL.Image
-  (
+  ( -- * Loading images
 
-  -- * Loading images
-  --
-  -- | Use the following functions to read any @PNG@, @JPG@, @TIF@, @GIF@,
-  -- @WEBP@, @CUR@, @ICO@, @BMP@, @PNM@, @XPM@, @XCF@, @PCX@ and @XV@ formatted
-  -- data.
-  --
-  -- If you have @TGA@-formatted data, you might wish to use the functions from
-  -- the <#tga following section> instead.
-    load
-  , decode
-  , loadTexture
-  , decodeTexture
+    --
 
-  -- * Loading TGA images
-  --
-  -- | #tga# Since @TGA@ images don't contain a specific unique signature, the
-  -- following functions might succeed even when given files not formatted as
-  -- @TGA@ images.
-  --
-  -- Only use these functions if you're certain the inputs are @TGA@-formatted,
-  -- otherwise they'll throw an exception.
-  , loadTGA
-  , decodeTGA
-  , loadTextureTGA
-  , decodeTextureTGA
+    -- | Use the following functions to read any @PNG@, @JPG@, @TIF@, @GIF@,
+    -- @WEBP@, @CUR@, @ICO@, @BMP@, @PNM@, @XPM@, @XCF@, @PCX@ and @XV@ formatted
+    -- data.
+    --
+    -- If you have @TGA@-formatted data, you might wish to use the functions from
+    -- the <#tga following section> instead.
+    load,
+    decode,
+    loadTexture,
+    decodeTexture,
 
-  -- * Format detection
-  , formattedAs
-  , format
-  , Format(..)
+    -- * Loading TGA images
 
-   -- * Other
-  , initialize
-  , InitFlag(..)
-  , version
-  , quit
-  ) where
+    --
 
-import Control.Exception      (bracket, throwIO)
+    -- | #tga# Since @TGA@ images don't contain a specific unique signature, the
+    -- following functions might succeed even when given files not formatted as
+    -- @TGA@ images.
+    --
+    -- Only use these functions if you're certain the inputs are @TGA@-formatted,
+    -- otherwise they'll throw an exception.
+    loadTGA,
+    decodeTGA,
+    loadTextureTGA,
+    decodeTextureTGA,
+
+    -- * Format detection
+    formattedAs,
+    format,
+    Format (..),
+
+    -- * Other
+    initialize,
+    InitFlag (..),
+    version,
+    quit,
+  )
+where
+
+import Control.Exception (bracket, throwIO)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Bits              ((.|.))
-import Data.ByteString        (ByteString)
+import Data.Bits ((.|.))
+import Data.ByteString (ByteString)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.List              (find)
-import Data.Text              (pack)
-import Foreign.C.String       (withCString)
-import Foreign.C.Types        (CInt)
-import Foreign.Ptr            (Ptr, castPtr)
-import Foreign.Storable       (peek)
-import GHC.Generics           (Generic)
-import SDL                    (Renderer, Texture, Surface(..), SDLException(..))
-import SDL.Internal.Exception (throwIfNull, throwIf_)
-import SDL.Raw.Filesystem     (rwFromFile, rwFromConstMem)
-import SDL.Raw.Types          (RWops)
-import System.IO.Unsafe       (unsafePerformIO)
-
+import Data.List (find)
+import Data.Text (pack)
+import Foreign.C.String (withCString)
+import Foreign.C.Types (CInt)
+import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Storable (peek)
+import GHC.Generics (Generic)
+import SDL (Renderer, SDLException (..), Surface (..), Texture)
 import qualified SDL
+import SDL.Internal.Exception (throwIfNull, throwIf_)
 import qualified SDL.Raw
+import SDL.Raw.Filesystem (rwFromConstMem, rwFromFile)
 import qualified SDL.Raw.Image
+import SDL.Raw.Types (RWops)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | Initializes @SDL2_image@ by loading support for the chosen image formats.
 -- Explicit initialization is optional.
@@ -104,18 +104,22 @@ initialize flags = do
 --
 -- Each designates early loading of support for a particular image format.
 data InitFlag
-  = InitJPG  -- ^ Load support for reading @JPG@ files.
-  | InitPNG  -- ^ Same, but for @PNG@ files.
-  | InitTIF  -- ^ @TIF@ files.
-  | InitWEBP -- ^ @WEBP@ files.
-  deriving (Eq, Enum, Ord, Bounded, Generic, Read, Show)
+  = -- | Load support for reading @JPG@ files.
+    InitJPG
+  | -- | Same, but for @PNG@ files.
+    InitPNG
+  | -- | @TIF@ files.
+    InitTIF
+  | -- | @WEBP@ files.
+    InitWEBP
+  deriving stock (Eq, Enum, Ord, Bounded, Generic, Read, Show)
 
 flagToCInt :: InitFlag -> CInt
 flagToCInt =
   \case
-    InitJPG  -> SDL.Raw.Image.IMG_INIT_JPG
-    InitPNG  -> SDL.Raw.Image.IMG_INIT_PNG
-    InitTIF  -> SDL.Raw.Image.IMG_INIT_TIF
+    InitJPG -> SDL.Raw.Image.IMG_INIT_JPG
+    InitPNG -> SDL.Raw.Image.IMG_INIT_PNG
+    InitTIF -> SDL.Raw.Image.IMG_INIT_TIF
     InitWEBP -> SDL.Raw.Image.IMG_INIT_WEBP
 
 -- | A helper for unmanaged 'Surface's, since it is not exposed by SDL itself.
@@ -129,9 +133,10 @@ unmanaged p = Surface p Nothing
 -- 'loadTGA' instead.
 load :: MonadIO m => FilePath -> m Surface
 load path =
-  fmap unmanaged .
-    throwIfNull "SDL.Image.load" "IMG_Load" .
-      liftIO $ withCString path SDL.Raw.Image.load
+  fmap unmanaged
+    . throwIfNull "SDL.Image.load" "IMG_Load"
+    . liftIO
+    $ withCString path SDL.Raw.Image.load
 
 -- | Same as 'load', but returning a 'Texture' instead.
 --
@@ -146,12 +151,13 @@ loadTexture r path =
 -- This will work for all supported image types, __except TGA__. If you need to
 -- decode a @TGA@ 'ByteString', use 'decodeTGA' instead.
 decode :: MonadIO m => ByteString -> m Surface
-decode bytes = liftIO .
-  unsafeUseAsCStringLen bytes $ \(cstr, len) -> do
+decode bytes = liftIO
+  . unsafeUseAsCStringLen bytes
+  $ \(cstr, len) -> do
     rw <- rwFromConstMem (castPtr cstr) (fromIntegral len)
-    fmap unmanaged .
-      throwIfNull "SDL.Image.decode" "IMG_Load_RW" $
-        SDL.Raw.Image.load_RW rw 0
+    fmap unmanaged
+      . throwIfNull "SDL.Image.decode" "IMG_Load_RW"
+      $ SDL.Raw.Image.load_RW rw 0
 
 -- | Same as 'decode', but returning a 'Texture' instead.
 --
@@ -165,11 +171,12 @@ decodeTexture r bytes =
 -- load them using this function.
 loadTGA :: MonadIO m => FilePath -> m Surface
 loadTGA path =
-  fmap unmanaged .
-    throwIfNull "SDL.Image.loadTGA" "IMG_LoadTGA_RW" .
-      liftIO $ do
-        rw <- withCString "rb" $ withCString path . flip rwFromFile
-        SDL.Raw.Image.loadTGA_RW rw
+  fmap unmanaged
+    . throwIfNull "SDL.Image.loadTGA" "IMG_LoadTGA_RW"
+    . liftIO
+    $ do
+      rw <- withCString "rb" $ withCString path . flip rwFromFile
+      SDL.Raw.Image.loadTGA_RW rw
 
 -- | Same as 'loadTGA', only returning a 'Texture' instead.
 loadTextureTGA :: MonadIO m => Renderer -> FilePath -> m Texture
@@ -181,12 +188,13 @@ loadTextureTGA r path =
 --
 -- Assumes the input is a @TGA@-formatted image.
 decodeTGA :: MonadIO m => ByteString -> m Surface
-decodeTGA bytes = liftIO .
-  unsafeUseAsCStringLen bytes $ \(cstr, len) -> do
+decodeTGA bytes = liftIO
+  . unsafeUseAsCStringLen bytes
+  $ \(cstr, len) -> do
     rw <- rwFromConstMem (castPtr cstr) (fromIntegral len)
-    fmap unmanaged .
-      throwIfNull "SDL.Image.decodeTGA" "IMG_LoadTGA_RW" $
-        SDL.Raw.Image.loadTGA_RW rw
+    fmap unmanaged
+      . throwIfNull "SDL.Image.decodeTGA" "IMG_LoadTGA_RW"
+      $ SDL.Raw.Image.loadTGA_RW rw
 
 -- | Same as 'decodeTGA', but returns a 'Texture' instead.
 decodeTextureTGA :: MonadIO m => Renderer -> ByteString -> m Texture
@@ -196,8 +204,9 @@ decodeTextureTGA r bytes =
 
 -- | Tests whether a 'ByteString' contains an image of a given format.
 formattedAs :: Format -> ByteString -> Bool
-formattedAs f bytes = unsafePerformIO .
-  unsafeUseAsCStringLen bytes $ \(cstr, len) -> do
+formattedAs f bytes = unsafePerformIO
+  . unsafeUseAsCStringLen bytes
+  $ \(cstr, len) -> do
     rw <- rwFromConstMem (castPtr cstr) (fromIntegral len)
     formatPredicate f rw >>= \case
       1 -> return True
@@ -215,7 +224,7 @@ formattedAs f bytes = unsafePerformIO .
 format :: ByteString -> Maybe Format
 format bytes = fst <$> find snd attempts
   where
-    attempts = map (\f -> (f, formattedAs f bytes)) [minBound..]
+    attempts = map (\f -> (f, formattedAs f bytes)) [minBound ..]
 
 -- | Each of the supported image formats.
 data Format
@@ -233,24 +242,24 @@ data Format
   | PNG
   | TIF
   | WEBP
-  deriving (Eq, Enum, Ord, Bounded, Generic, Read, Show)
+  deriving stock (Eq, Enum, Ord, Bounded, Generic, Read, Show)
 
 -- Given an image format, return its raw predicate function.
 formatPredicate :: MonadIO m => Format -> Ptr RWops -> m CInt
 formatPredicate = \case
-  CUR  -> SDL.Raw.Image.isCUR
-  ICO  -> SDL.Raw.Image.isICO
-  BMP  -> SDL.Raw.Image.isBMP
-  PNM  -> SDL.Raw.Image.isPNM
-  XPM  -> SDL.Raw.Image.isXPM
-  XCF  -> SDL.Raw.Image.isXCF
-  PCX  -> SDL.Raw.Image.isPCX
-  GIF  -> SDL.Raw.Image.isGIF
-  LBM  -> SDL.Raw.Image.isLBM
-  XV   -> SDL.Raw.Image.isXV
-  JPG  -> SDL.Raw.Image.isJPG
-  PNG  -> SDL.Raw.Image.isPNG
-  TIF  -> SDL.Raw.Image.isTIF
+  CUR -> SDL.Raw.Image.isCUR
+  ICO -> SDL.Raw.Image.isICO
+  BMP -> SDL.Raw.Image.isBMP
+  PNM -> SDL.Raw.Image.isPNM
+  XPM -> SDL.Raw.Image.isXPM
+  XCF -> SDL.Raw.Image.isXCF
+  PCX -> SDL.Raw.Image.isPCX
+  GIF -> SDL.Raw.Image.isGIF
+  LBM -> SDL.Raw.Image.isLBM
+  XV -> SDL.Raw.Image.isXV
+  JPG -> SDL.Raw.Image.isJPG
+  PNG -> SDL.Raw.Image.isPNG
+  TIF -> SDL.Raw.Image.isTIF
   WEBP -> SDL.Raw.Image.isWEBP
 
 -- | Gets the major, minor, patch versions of the linked @SDL2_image@ library.

@@ -1,0 +1,5 @@
+resolver: nightly-2021-09-10
+packages:
+- .
+nix:
+  packages: [pkg-config, SDL2_image, SDL2]
