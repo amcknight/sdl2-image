@@ -1,15 +1,15 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Concurrent (threadDelay)
-import Control.Monad (forM_)
-import Data.Text (Text)
-import Data.Text.IO (putStrLn)
+import           Control.Concurrent (threadDelay)
+import           Control.Monad      (forM_)
+import           Data.Text          (Text)
+import           Data.Text.IO       (putStrLn)
+import           Prelude            hiding (putStrLn)
 import qualified SDL
 import qualified SDL.Image
-import System.Environment (getArgs)
-import System.Exit (exitFailure)
-import Prelude hiding (putStrLn)
+import           System.Environment (getArgs)
+import           System.Exit        (exitFailure)
 
 -- A sequence of example actions to be perfomed and displayed.
 examples :: [(Text, SDL.Window -> FilePath -> IO ())]

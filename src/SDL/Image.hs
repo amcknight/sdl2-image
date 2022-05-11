@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 -- |
 --
@@ -61,26 +61,27 @@ module SDL.Image
   )
 where
 
-import Control.Exception (bracket, throwIO)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Bits ((.|.))
-import Data.ByteString (ByteString)
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.List (find)
-import Data.Text (pack)
-import Foreign.C.String (withCString)
-import Foreign.C.Types (CInt)
-import Foreign.Ptr (Ptr, castPtr)
-import Foreign.Storable (peek)
-import GHC.Generics (Generic)
-import SDL (Renderer, SDLException (..), Surface (..), Texture)
+import           Control.Exception      (bracket, throwIO)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Bits              ((.|.))
+import           Data.ByteString        (ByteString)
+import           Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import           Data.List              (find)
+import           Data.Text              (pack)
+import           Foreign.C.String       (withCString)
+import           Foreign.C.Types        (CInt)
+import           Foreign.Ptr            (Ptr, castPtr)
+import           Foreign.Storable       (peek)
+import           GHC.Generics           (Generic)
+import           SDL                    (Renderer, SDLException (..),
+                                         Surface (..), Texture)
 import qualified SDL
-import SDL.Internal.Exception (throwIfNull, throwIf_)
+import           SDL.Internal.Exception (throwIfNull, throwIf_)
 import qualified SDL.Raw
-import SDL.Raw.Filesystem (rwFromConstMem, rwFromFile)
+import           SDL.Raw.Filesystem     (rwFromConstMem, rwFromFile)
 import qualified SDL.Raw.Image
-import SDL.Raw.Types (RWops)
-import System.IO.Unsafe (unsafePerformIO)
+import           SDL.Raw.Types          (RWops)
+import           System.IO.Unsafe       (unsafePerformIO)
 
 -- | Initializes @SDL2_image@ by loading support for the chosen image formats.
 -- Explicit initialization is optional.
@@ -117,9 +118,9 @@ data InitFlag
 flagToCInt :: InitFlag -> CInt
 flagToCInt =
   \case
-    InitJPG -> SDL.Raw.Image.IMG_INIT_JPG
-    InitPNG -> SDL.Raw.Image.IMG_INIT_PNG
-    InitTIF -> SDL.Raw.Image.IMG_INIT_TIF
+    InitJPG  -> SDL.Raw.Image.IMG_INIT_JPG
+    InitPNG  -> SDL.Raw.Image.IMG_INIT_PNG
+    InitTIF  -> SDL.Raw.Image.IMG_INIT_TIF
     InitWEBP -> SDL.Raw.Image.IMG_INIT_WEBP
 
 -- | A helper for unmanaged 'Surface's, since it is not exposed by SDL itself.
@@ -247,19 +248,19 @@ data Format
 -- Given an image format, return its raw predicate function.
 formatPredicate :: MonadIO m => Format -> Ptr RWops -> m CInt
 formatPredicate = \case
-  CUR -> SDL.Raw.Image.isCUR
-  ICO -> SDL.Raw.Image.isICO
-  BMP -> SDL.Raw.Image.isBMP
-  PNM -> SDL.Raw.Image.isPNM
-  XPM -> SDL.Raw.Image.isXPM
-  XCF -> SDL.Raw.Image.isXCF
-  PCX -> SDL.Raw.Image.isPCX
-  GIF -> SDL.Raw.Image.isGIF
-  LBM -> SDL.Raw.Image.isLBM
-  XV -> SDL.Raw.Image.isXV
-  JPG -> SDL.Raw.Image.isJPG
-  PNG -> SDL.Raw.Image.isPNG
-  TIF -> SDL.Raw.Image.isTIF
+  CUR  -> SDL.Raw.Image.isCUR
+  ICO  -> SDL.Raw.Image.isICO
+  BMP  -> SDL.Raw.Image.isBMP
+  PNM  -> SDL.Raw.Image.isPNM
+  XPM  -> SDL.Raw.Image.isXPM
+  XCF  -> SDL.Raw.Image.isXCF
+  PCX  -> SDL.Raw.Image.isPCX
+  GIF  -> SDL.Raw.Image.isGIF
+  LBM  -> SDL.Raw.Image.isLBM
+  XV   -> SDL.Raw.Image.isXV
+  JPG  -> SDL.Raw.Image.isJPG
+  PNG  -> SDL.Raw.Image.isPNG
+  TIF  -> SDL.Raw.Image.isTIF
   WEBP -> SDL.Raw.Image.isWEBP
 
 -- | Gets the major, minor, patch versions of the linked @SDL2_image@ library.
