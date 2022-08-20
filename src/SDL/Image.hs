@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
 
 -- |
 --
@@ -66,6 +67,7 @@ import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Bits              ((.|.))
 import           Data.ByteString        (ByteString)
 import           Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import Data.Kind (Type)
 import           Data.List              (find)
 import           Data.Text              (pack)
 import           Foreign.C.String       (withCString)
@@ -104,6 +106,7 @@ initialize flags = do
 -- | Flags intended to be fed to 'initialize'.
 --
 -- Each designates early loading of support for a particular image format.
+type InitFlag :: Type
 data InitFlag
   = -- | Load support for reading @JPG@ files.
     InitJPG
@@ -228,6 +231,7 @@ format bytes = fst <$> find snd attempts
     attempts = map (\f -> (f, formattedAs f bytes)) [minBound ..]
 
 -- | Each of the supported image formats.
+type Format :: Type
 data Format
   = CUR
   | ICO

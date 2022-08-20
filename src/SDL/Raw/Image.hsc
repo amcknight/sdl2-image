@@ -19,6 +19,7 @@ documentation.
 {-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module SDL.Raw.Image
@@ -74,6 +75,7 @@ module SDL.Raw.Image
 
 #include "SDL_image.h"
 
+import Data.Kind              (Type)
 import Foreign.C.String       (CString)
 import Foreign.C.Types        (CInt(..))
 import Foreign.Ptr            (Ptr)
@@ -84,11 +86,19 @@ import SDL.Raw.Helper         (liftF)
 liftF "getVersion" "IMG_Linked_Version"
   [t|IO (Ptr Version)|]
 
+type InitFlags :: Type
 type InitFlags = CInt
 
+pattern IMG_INIT_JPG :: CInt
 pattern IMG_INIT_JPG  = #{const IMG_INIT_JPG}
+
+pattern IMG_INIT_PNG :: CInt
 pattern IMG_INIT_PNG  = #{const IMG_INIT_PNG}
+
+pattern IMG_INIT_TIF :: CInt
 pattern IMG_INIT_TIF  = #{const IMG_INIT_TIF}
+
+pattern IMG_INIT_WEBP :: CInt
 pattern IMG_INIT_WEBP = #{const IMG_INIT_WEBP}
 
 liftF "init" "IMG_Init"
@@ -101,12 +111,14 @@ liftF "load" "IMG_Load"
   [t|CString -> IO (Ptr Surface)|]
 
 -- | Should the 'Ptr' 'RWops' be freed after an operation? 1 for yes, 0 for no.
+type Free :: Type
 type Free = CInt
 
 liftF "load_RW" "IMG_Load_RW"
   [t|Ptr RWops -> Free -> IO (Ptr Surface)|]
 
 -- | A case-insensitive desired format, e.g. @\"jpg\"@ or @\"PNG\"@.
+type Format :: Type
 type Format = CString
 
 liftF "loadTyped_RW" "IMG_LoadTyped_RW"
